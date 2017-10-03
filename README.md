@@ -1,6 +1,8 @@
 # generator-wow-addon [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
 > A template for creating a World of Warcraft addon in Lua.
 
+This generator includes Ace3 support as well as an options boilerplate, chat command, minimap button, and lots more ready to go!
+
 ## Installation
 
 First, install [Yeoman](http://yeoman.io) and generator-wow-addon using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
