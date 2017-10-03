@@ -1,0 +1,21 @@
+## Interface: <%- wowVersion %>
+## Title: <%- appName %>
+## Notes: <%- appDesc %>
+## Version: 1.0
+## SavedVariables: <%- appName %>DB
+## Author: <%- authorName %>
+
+## X-Email: <%- authorEmail %>
+## X-License: MIT
+
+## X-Localizations: enUS
+<% if (appURL) { %>## X-Website: <%- appURL %><% } %>
+<% if (appFeedback) { %>## X-Feedback: <%- appFeedback %><% } %>
+
+# Created with generator-wow-addon
+
+embeds.xml
+locales\Locales.xml
+constants.lua
+core.lua
+modules\load_modules.xml
