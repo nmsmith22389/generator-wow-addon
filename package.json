@@ -1,12 +1,11 @@
 {
   "name": "generator-wow-addon",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A template for creating a World of Warcraft addon in Lua.",
-  "homepage": "<url>",
   "author": {
-    "name": "nmsmith22389",
+    "name": "nmsmith89",
     "email": "nmsmith22389@gmail.com",
-    "url": ""
+    "url": "https://github.com/nmsmith22389"
   },
   "files": [
     "generators"
