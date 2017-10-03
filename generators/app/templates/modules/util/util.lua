@@ -1,0 +1,219 @@
+local Util = <%- appName %>:NewModule('Util')
+
+function Util:ColorText(text, hex)
+    return self:GetColorString(hex)..tostring(text)..'|r'
+end
+
+function Util:GetColorString(hex)
+    if hex == 'addon' then
+        hex = 'FF3D00'
+    elseif hex == 'info' then
+        hex = '8BE9FD'
+    elseif hex == 'success' then
+        hex = '50FA7B'
+    elseif hex == 'warning' then
+        hex = 'ffb86c'
+    elseif hex == 'alert' then
+        hex = 'ff5555'
+    end
+
+    if string.len(hex) == 6 then
+        hex = 'ff'..hex
+    end
+
+    return '|c'..tostring(hex):lower()
+end
+
+function Util:Print(text, frame)
+    if type(frame) ~= 'table' or not frame.AddMessage then
+		frame = DEFAULT_CHAT_FRAME
+	end
+
+    frame:AddMessage(self:ColorText(self.baseName, 'addon')..': '..tostring(text))
+end
+
+function Util:Announce(text)
+    local Options = <%- appName %>:GetModule('Options', true)
+    if Options:Get('toggleAnnounceEvents') then
+        self:Print(text)
+    end
+end
+
+function Util:Debug(text)
+    local Options = <%- appName %>:GetModule('Options', true)
+    if Options:Get('toggleDebugMode') then
+        self:Print(self:ColorText('<DEBUG> ', 'alert')..text)
+    end
+end
+
+function Util:DebugOption(option, value, old)
+    if old ~= nil then
+        self:Debug(tostring(option)..': '..tostring(old)..' -> '..tostring(value))
+    else
+        self:Debug(tostring(option)..' => '..tostring(value))
+    end
+end
+
+function Util:ToCopper(input)
+    local gold, silver, copper = 0, 0, 0
+    local goldPatColored = '(%d+)[ ]?%|cffffd700[ ]?[gG]'
+    local silverPatColored = '(%d+)[ ]?%|cffc7c7cf[ ]?[sS]'
+    local copperPatColored = '(%d+)[ ]?%|cffeda55f[ ]?[cC]'
+
+    if input:find(goldPatColored) then
+        gold = tonumber(string.match(input, goldPatColored)) or 0
+        input = input:gsub(goldPatColored, '', 1)
+    else
+        gold = tonumber(string.match(input,"(%d+)%s?[gG]")) or 0
+    end
+    if input:find(silverPatColored) then
+        silver = tonumber(string.match(input, silverPatColored)) or 0
+        input = input:gsub(silverPatColored, '', 1)
+    else
+        silver = tonumber(string.match(input,"(%d+)%s?[sS]")) or 0
+    end
+    if input:find(copperPatColored) then
+        copper = tonumber(string.match(input, copperPatColored)) or 0
+        input = input:gsub(copperPatColored, '', 1)
+    else
+        copper = tonumber(string.match(input,"(%d+)%s?[cC]")) or 0
+    end
+    local total = (gold*10000)+(silver*100)+(copper)
+    return total
+end
+
+function Util:UCFirst(str)
+    return (str:gsub("^%l", string.upper))
+end
+
+function Util:Round(num, idp)
+    local mult = 10^(idp or 0)
+    if num >= 0 then return math.floor(num * mult + 0.5) / mult
+    else return math.ceil(num * mult - 0.5) / mult end
+end
+
+function Util:GetItemID(itemString)
+    local itemId = select(2, strsplit(':', itemString))
+    return tonumber(itemId)
+end
+
+function Util:IsEmpty(t)
+    return next(t) == nil
+end
+
+function Util:SlotIsGold(slot)
+    if GetLootSlotType(slot) == HL_LOOT_SLOT_TYPE.COIN then 
+        return true
+    end
+end
+
+function Util:SlotIsCurrency(slot)
+    if GetLootSlotType(slot) == HL_LOOT_SLOT_TYPE.CURRENCY then 
+        return true
+    end
+end
+
+function Util:ShortNumber(num, places)
+    local ret
+    local placeValue = ("%%.%df"):format(places or 0)
+    if not num then
+        return 0
+    elseif num >= 1000000000000 then
+        placeValue = placeValue..'T'
+        ret = placeValue:format(num / 1000000000000) -- trillion
+    elseif num >= 1000000000 then
+        placeValue = placeValue..'B'
+        ret = placeValue:format(num / 1000000000) -- billion
+    elseif num >= 1000000 then
+        placeValue = placeValue..'M'
+        ret = placeValue:format(num / 1000000) -- million
+    elseif num >= 1000 then
+        placeValue = placeValue..'K'
+        ret = placeValue:format(num / 1000) -- thousand
+    else
+        ret = num -- hundreds
+    end
+    return ret
+end
+
+--Money text formatting, code taken from Scrooge by thelibrarian ( http://www.wowace.com/addons/scrooge/ )
+local COLOR_COPPER = "|cffeda55f"
+local COLOR_SILVER = "|cffc7c7cf"
+local COLOR_GOLD = "|cffffd700"
+local ICON_COPPER = "|TInterface\\MoneyFrame\\UI-CopperIcon:12:12|t"
+local ICON_SILVER = "|TInterface\\MoneyFrame\\UI-SilverIcon:12:12|t"
+local ICON_GOLD = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12|t"
+function Util:FormatMoney(amount, style, textonly)
+	local coppername = textonly and COLOR_COPPER..COPPER_AMOUNT_SYMBOL..'|r' or ICON_COPPER
+	local silvername = textonly and COLOR_SILVER..SILVER_AMOUNT_SYMBOL..'|r' or ICON_SILVER
+	local goldname = textonly and COLOR_GOLD..GOLD_AMOUNT_SYMBOL..'|r' or ICON_GOLD
+
+    -- Note: Added this in to fix `abs recieved nil value` error
+    if not amount then
+        return 'N/A'
+    end
+
+	local value = abs(amount)
+	local gold = floor(value / 10000)
+	local silver = floor(mod(value / 100, 100))
+	local copper = floor(mod(value, 100))
+
+	if not style or style == "SMART" then
+		local str = ""
+		if gold > 0 then
+			str = format("%d%s%s", gold, goldname, (silver > 0 or copper > 0) and " " or "")
+		end
+		if silver > 0 then
+			str = format("%s%d%s%s", str, silver, silvername, copper > 0 and " " or "")
+		end
+		if copper > 0 or value == 0 then
+			str = format("%s%d%s", str, copper, coppername)
+		end
+		return str
+	end
+
+	if style == "FULL" then
+		if gold > 0 then
+			return format("%d%s %d%s %d%s", gold, goldname, silver, silvername, copper, coppername)
+		elseif silver > 0 then
+			return format("%d%s %d%s", silver, silvername, copper, coppername)
+		else
+			return format("%d%s", copper, coppername)
+		end
+	elseif style == "SHORT" then
+		if gold > 0 then
+			return format("%.1f%s", amount / 10000, goldname)
+		elseif silver > 0 then
+			return format("%.1f%s", amount / 100, silvername)
+		else
+			return format("%d%s", amount, coppername)
+		end
+	elseif style == "SHORTINT" then
+		if gold > 0 then
+			return format("%d%s", gold, goldname)
+		elseif silver > 0 then
+			return format("%d%s", silver, silvername)
+		else
+			return format("%d%s", copper, coppername)
+		end
+	elseif style == "CONDENSED" then
+		if gold > 0 then
+			return format("%s%d|r.%s%02d|r.%s%02d|r", COLOR_GOLD, gold, COLOR_SILVER, silver, COLOR_COPPER, copper)
+		elseif silver > 0 then
+			return format("%s%d|r.%s%02d|r", COLOR_SILVER, silver, COLOR_COPPER, copper)
+		else
+			return format("%s%d|r", COLOR_COPPER, copper)
+		end
+	elseif style == "BLIZZARD" then
+		if gold > 0 then
+			return format("%s%s %d%s %d%s", BreakUpLargeNumbers(gold), goldname, silver, silvername, copper, coppername)
+		elseif silver > 0 then
+			return format("%d%s %d%s", silver, silvername, copper, coppername)
+		else
+			return format("%d%s", copper, coppername)
+		end
+	end
+
+	-- Shouldn't be here; punt
+	return self:FormatMoney(amount, "SMART")
+end

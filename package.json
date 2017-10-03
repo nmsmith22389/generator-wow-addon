@@ -67,11 +67,13 @@
       "node": true
     },
     "rules": {
+      "capitalized-comments": "off",
       "prettier/prettier": [
         "error",
         {
           "singleQuote": true,
-          "printWidth": 90
+          "printWidth": 90,
+          "tabWidth": 4
         }
       ]
     },
